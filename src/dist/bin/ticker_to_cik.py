@@ -1,9 +1,9 @@
 #!/usr/bin/env python
+import json
 import re
 import sys
 import urllib
  
-DEFAULT_TICKERS = ['goog', 'aapl']
 URL = 'http://www.sec.gov/cgi-bin/browse-edgar?CIK={}&Find=Search&owner=exclude&action=getcompany'
 CIK_RE = re.compile(r'.*CIK=(\d{10}).*')
 
@@ -20,4 +20,5 @@ def get_cik_from_tickers(tickers):
     return cik_dict
 
 if __name__ == '__main__':
-    print(get_cik_from_tickers(sys.argv[1:]))    
+    json_string = json.dumps(get_cik_from_tickers(sys.argv[1:]))    
+    print(json_string)
