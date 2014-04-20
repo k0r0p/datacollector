@@ -3,9 +3,9 @@ package com.hydronitrogen.datacollector.importer;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
+import org.joda.time.DateTime;
 
 /**
  * @author hkothari
@@ -29,9 +29,10 @@ public final class YahooFinanceUtils {
      * @param endDate the last date of prices to include.
      * @return a String of a CSV of historical prices.
      */
-    public static String getHistoricalPrices(String ticker, Date startDate, Date endDate) {
-        String downloadUrl = String.format(CSV_DOWNLOAD_URL, ticker, startDate.getMonth() + 1, startDate.getDate(),
-                startDate.getYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getYear());
+    public static String getHistoricalPrices(String ticker, DateTime startDate, DateTime endDate) {
+        String downloadUrl = String.format(CSV_DOWNLOAD_URL, ticker, startDate.getMonthOfYear(),
+                startDate.getDayOfMonth(), startDate.getYear(), endDate.getMonthOfYear(), endDate.getDayOfMonth(),
+                endDate.getYear());
         URL url;
         try {
             url = new URL(downloadUrl);

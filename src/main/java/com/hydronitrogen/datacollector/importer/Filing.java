@@ -1,7 +1,8 @@
 package com.hydronitrogen.datacollector.importer;
 
-import java.util.Date;
 import java.util.Objects;
+
+import org.joda.time.DateTime;
 
 /**
  * @author hkothari
@@ -11,10 +12,10 @@ public final class Filing {
     private final String company;
     private final String form;
     private final String cik;
-    private final Date date;
+    private final DateTime date;
     private final String filename;
 
-    public Filing(String company, String form, String cik, Date date, String filename) {
+    public Filing(String company, String form, String cik, DateTime date, String filename) {
         this.company = company;
         this.form = form;
         this.cik = cik;
@@ -30,7 +31,7 @@ public final class Filing {
         return cik;
     }
 
-    public Date getDate() {
+    public DateTime getDate() {
         return date;
     }
 

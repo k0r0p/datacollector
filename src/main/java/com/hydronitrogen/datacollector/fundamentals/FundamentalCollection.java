@@ -1,7 +1,8 @@
 package com.hydronitrogen.datacollector.fundamentals;
 
-import java.util.Date;
 import java.util.Set;
+
+import org.joda.time.DateTime;
 
 import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.importer.Filings;
@@ -29,7 +30,7 @@ public final class FundamentalCollection {
         this.cashFlowsStatement = cashFlowsStatement;
     }
 
-    public Date getDateFiled() {
+    public DateTime getDateFiled() {
         return filing.getDate();
     }
 
@@ -54,8 +55,8 @@ public final class FundamentalCollection {
         Context newestContext = null;
         for (Context context : contexts) {
             if (context.getPeriod().isInstant() && isSimpleContext(context)) {
-                Date newStart = context.getPeriod().getStartDate();
-                if (newestContext == null || newStart.after(newestContext.getPeriod().getStartDate())) {
+                DateTime newStart = context.getPeriod().getStartDate();
+                if (newestContext == null || newStart.isAfter(newestContext.getPeriod().getStartDate())) {
                     newestContext = context;
                 }
             }
@@ -68,8 +69,8 @@ public final class FundamentalCollection {
         Context newestContext = null;
         for (Context context : contexts) {
             if (!context.getPeriod().isInstant() && isSimpleContext(context)) {
-                Date newEnd = context.getPeriod().getEndDate();
-                if (newestContext == null || newEnd.after(newestContext.getPeriod().getEndDate())) {
+                DateTime newEnd = context.getPeriod().getEndDate();
+                if (newestContext == null || newEnd.isAfter(newestContext.getPeriod().getEndDate())) {
                     newestContext = context;
                 }
             }

@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
-import java.util.Date;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -17,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.joda.time.DateTime;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -63,7 +63,7 @@ public final class Filings {
     public static Set<Filing> getFilingsSince(int year) {
         ImmutableSet.Builder<Filing> builder = ImmutableSet.builder();
         // TODO: (hkothari) fix this
-        for (int currentYear = year; year <= 2014; currentYear++) {
+        for (int currentYear = year; currentYear <= 2014; currentYear++) {
             for(int currentQuarter = 1; currentQuarter <= 4; currentQuarter++) {
                 builder.addAll(getFilingList(currentYear, currentQuarter));
             }
@@ -145,7 +145,7 @@ public final class Filings {
         return string.replaceAll("[^\\x00-\\x7F]", "");
     }
 
-    private static Date parseIndexDate(String date) {
+    private static DateTime parseIndexDate(String date) {
         try {
             return FormatUtils.parseDate(date);
         } catch (ParseException e) {
@@ -164,7 +164,7 @@ public final class Filings {
                 String company = entry.substring(0, 62).trim();
                 String form = entry.substring(62, 74).trim();
                 String cik = entry.substring(74, 86).trim();
-                Date date = parseIndexDate(entry.substring(86, 98).trim());
+                DateTime date = parseIndexDate(entry.substring(86, 98).trim());
                 String filename = entry.substring(98).trim();
                 filings.add(new Filing(company, form, cik, date, filename));
             }

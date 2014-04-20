@@ -1,6 +1,6 @@
 package com.hydronitrogen.datacollector.fundamentals;
 
-import java.util.Date;
+import org.joda.time.DateTime;
 
 import com.hydronitrogen.datacollector.xbrl.Context;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
@@ -16,11 +16,11 @@ public final class CashFlowsStatement extends XbrlBased {
         // Assert context is duration
     }
 
-    public Date getStartDate() {
+    public DateTime getStartDate() {
         return getPeriod().getStartDate();
     }
 
-    public Date getEndDate() {
+    public DateTime getEndDate() {
         return getPeriod().getEndDate();
     }
 }

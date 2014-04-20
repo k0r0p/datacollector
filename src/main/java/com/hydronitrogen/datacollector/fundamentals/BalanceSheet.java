@@ -1,7 +1,8 @@
 package com.hydronitrogen.datacollector.fundamentals;
 
-import java.util.Date;
 import java.util.Set;
+
+import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -40,7 +41,7 @@ public final class BalanceSheet extends XbrlBased {
         return getOneOfFacts(EQUITY_FIELDS);
     }
 
-    public Date getDate() {
+    public DateTime getDate() {
         return getPeriod().getStartDate();
     }
 

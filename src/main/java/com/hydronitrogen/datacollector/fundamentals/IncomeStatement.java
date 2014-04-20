@@ -1,7 +1,8 @@
 package com.hydronitrogen.datacollector.fundamentals;
 
-import java.util.Date;
 import java.util.Set;
+
+import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -40,11 +41,11 @@ public final class IncomeStatement extends XbrlBased {
         return getDoubleFactValue(EARNINGS_PER_SHARE_BASIC_FIELD);
     }
 
-    public Date getDate() {
+    public DateTime getStartDate() {
         return getPeriod().getStartDate();
     }
 
-    public Date getEndDate() {
+    public DateTime getEndDate() {
         return getPeriod().getEndDate();
     }
 }
