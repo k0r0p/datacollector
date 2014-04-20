@@ -1,0 +1,41 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+}
+
+project.ext {
+    jacksonVersion = "2.3.3"
+}
+
+dependencies {
+    compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
+    compile group: 'commons-net', name: 'commons-net', version: '3.3'
+    compile group: 'com.google.guava', name: 'guava', version: '16.0.1'
+
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.jacksonVersion
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: project.jacksonVersion
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.jacksonVersion
+
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+checkstyle {
+    def configDir = "${projectDir.absolutePath}/config/checkstyle"
+    configProperties = ['samedir':configDir]
+}
+
+eclipse {
+    project {
+        natures "edu.umd.cs.findbugs.plugin.eclipse.findbugsNature"
+        natures "net.sf.eclipsecs.core.CheckstyleNature"
+        buildCommand "edu.umd.cs.findbugs.plugin.eclipse.findbugsBuilder"
+        buildCommand "net.sf.eclipsecs.core.CheckstyleBuilder"
+    }
+}
