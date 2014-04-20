@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -48,7 +49,7 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
             throw new RuntimeException(e);
         }
         // Collect the list of filings
-        Set<Filing> filings = Filings.getFilingsSince(2000);
+        Set<Filing> filings = Filings.getFilingsSince(2012);
         filings = Filings.filterFilingList(filings, new FilingFilter() {
 
             @Override
@@ -58,12 +59,25 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
 
         });
         // Process them in parallel
-        List<Future<FundamentalCollection>> fundamentalCollections = Lists.newArrayList();
+        List<Future<FundamentalCollection>> futureFundamentalCollections = Lists.newArrayList();
         for (Filing filing : filings) {
             Future<FundamentalCollection> fundamental = jobExecutor.submit(new FundamentalCollector(filing));
-            fundamentalCollections.add(fundamental);
+            futureFundamentalCollections.add(fundamental);
         }
-        // TODO: Write the fundamental collections to JSON
+        // Write the fundamental collections to JSON
+        List<FundamentalCollection> fundamentalCollections = Lists.newArrayList();
+        for (Future<FundamentalCollection> future : futureFundamentalCollections) {
+            try {
+                fundamentalCollections.add(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            mapper.writeValue(System.out, fundamentalCollections);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
