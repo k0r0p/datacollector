@@ -1,4 +1,4 @@
-package com.hydronitrogen.secscraper.xbrl;
+package com.hydronitrogen.datacollector.xbrl;
 
 import static org.junit.Assert.assertEquals;
 

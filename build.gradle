@@ -22,6 +22,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.jacksonVersion
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: project.jacksonVersion
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.jacksonVersion
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: project.jacksonVersion
 
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }

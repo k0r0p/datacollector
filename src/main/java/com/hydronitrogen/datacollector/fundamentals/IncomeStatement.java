@@ -21,6 +21,7 @@ public final class IncomeStatement extends XbrlBased {
             "us-gaap:RealEstateRevenueNet", "us-gaap:RevenueMineralSales", "us-gaap:OilAndGasRevenue",
             "us-gaap:FinancialServicesRevenue", "us-gaap:RegulatedAndUnregulatedOperatingRevenue");
     private static final String GROSS_PROFIT_FIELD = "us-gaap:GrossProfit";
+    private static final String EARNINGS_PER_SHARE_BASIC_FIELD = "us-gaap:EarningsPerShareBasic";
 
     public IncomeStatement(XbrlParser source, Context context) {
         super(source, context);
@@ -35,7 +36,11 @@ public final class IncomeStatement extends XbrlBased {
         return getDoubleFactValue(GROSS_PROFIT_FIELD);
     }
 
-    public Date getStartDate() {
+    public Optional<Double> getEarningsPerShareBasic() {
+        return getDoubleFactValue(EARNINGS_PER_SHARE_BASIC_FIELD);
+    }
+
+    public Date getDate() {
         return getPeriod().getStartDate();
     }
 

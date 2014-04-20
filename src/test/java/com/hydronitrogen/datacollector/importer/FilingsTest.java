@@ -1,4 +1,4 @@
-package com.hydronitrogen.secscraper.importer;
+package com.hydronitrogen.datacollector.importer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

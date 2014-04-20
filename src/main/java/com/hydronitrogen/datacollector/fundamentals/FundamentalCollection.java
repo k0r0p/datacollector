@@ -18,14 +18,14 @@ public final class FundamentalCollection {
 
     private final Filing filing;
     private final BalanceSheet balanceSheet;
-    private final IncomeStatement incomeStatment;
+    private final IncomeStatement incomeStatement;
     private final CashFlowsStatement cashFlowsStatement;
 
     private FundamentalCollection(Filing filing, BalanceSheet balanceSheet, IncomeStatement incomeStatement,
             CashFlowsStatement cashFlowsStatement) {
         this.filing = filing;
         this.balanceSheet = balanceSheet;
-        this.incomeStatment = incomeStatement;
+        this.incomeStatement = incomeStatement;
         this.cashFlowsStatement = cashFlowsStatement;
     }
 
@@ -33,11 +33,27 @@ public final class FundamentalCollection {
         return filing.getDate();
     }
 
+    public BalanceSheet getBalanceSheet() {
+        return balanceSheet;
+    }
+
+    public IncomeStatement getIncomeStatement() {
+        return incomeStatement;
+    }
+
+    public CashFlowsStatement getCashFlowsStatement() {
+        return cashFlowsStatement;
+    }
+
+    private static boolean isSimpleContext(Context context) {
+        return context.getId().matches("[DI]\\d{4}");
+    }
+
     private static Context getLastInstantContextFromXbrl(XbrlParser xbrl) {
         Set<Context> contexts = xbrl.getContexts();
         Context newestContext = null;
         for (Context context : contexts) {
-            if (context.getPeriod().isInstant()) {
+            if (context.getPeriod().isInstant() && isSimpleContext(context)) {
                 Date newStart = context.getPeriod().getStartDate();
                 if (newestContext == null || newStart.after(newestContext.getPeriod().getStartDate())) {
                     newestContext = context;
@@ -51,10 +67,10 @@ public final class FundamentalCollection {
         Set<Context> contexts = xbrl.getContexts();
         Context newestContext = null;
         for (Context context : contexts) {
-            if (!context.getPeriod().isInstant()) {
+            if (!context.getPeriod().isInstant() && isSimpleContext(context)) {
                 Date newEnd = context.getPeriod().getEndDate();
                 if (newestContext == null || newEnd.after(newestContext.getPeriod().getEndDate())) {
-                    newestContext = null;
+                    newestContext = context;
                 }
             }
         }
