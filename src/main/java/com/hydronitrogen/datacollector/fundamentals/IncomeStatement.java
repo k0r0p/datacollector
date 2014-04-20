@@ -20,8 +20,6 @@ public final class IncomeStatement extends XbrlBased {
             "us-gaap:HealthCareOrganizationRevenue", "us-gaap:InterestAndDividendIncomeOperating",
             "us-gaap:RealEstateRevenueNet", "us-gaap:RevenueMineralSales", "us-gaap:OilAndGasRevenue",
             "us-gaap:FinancialServicesRevenue", "us-gaap:RegulatedAndUnregulatedOperatingRevenue");
-    private static final Set<String> COST_OF_REVENUE_FIELDS = ImmutableSet.of("us-gaap:CostOfRevenue",
-            "us-gaap:CostOfServices", "us-gaap:CostOfGoodsSold", "us-gaap:CostOfGoodsAndServicesSold");
     private static final String GROSS_PROFIT_FIELD = "us-gaap:GrossProfit";
 
     public IncomeStatement(XbrlParser source, Context context) {
