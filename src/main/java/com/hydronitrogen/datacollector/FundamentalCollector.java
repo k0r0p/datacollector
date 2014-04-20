@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -41,7 +42,8 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
     public static void main(String[] args) {
         final Map<String, String> tickersToCik;
         try {
-            tickersToCik = mapper.readValue(System.in, Map.class);
+            TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String,String>>() {};
+            tickersToCik = mapper.readValue(System.in, typeRef);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
