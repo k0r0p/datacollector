@@ -1,19 +1,29 @@
 package com.hydronitrogen.datacollector;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.hydronitrogen.datacollector.fundamentals.BalanceSheet;
+import com.hydronitrogen.datacollector.fundamentals.CashFlowsStatement;
 import com.hydronitrogen.datacollector.fundamentals.FundamentalCollection;
+import com.hydronitrogen.datacollector.fundamentals.IncomeStatement;
 import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.importer.FilingFilter;
 import com.hydronitrogen.datacollector.importer.Filings;
@@ -41,6 +51,22 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
      * @param args
      */
     public static void main(String[] args) {
+        Options options = new Options();
+        options.addOption("b", true, "balance sheet file");
+        options.addOption("i", true, "income statement file");
+        options.addOption("c", true, "cash flows statement file");
+
+        CommandLineParser parser = new BasicParser();
+        CommandLine cmd;
+        try {
+            cmd = parser.parse( options, args);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        String balanceSheetName = cmd.getOptionValue("b");
+        String incomeStatementName = cmd.getOptionValue("i");
+        String cashFlowsStatementName = cmd.getOptionValue("c");
+
         final Map<String, String> tickersToCik;
         try {
             TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String,String>>() {};
@@ -64,17 +90,52 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
             Future<FundamentalCollection> fundamental = jobExecutor.submit(new FundamentalCollector(filing));
             futureFundamentalCollections.add(fundamental);
         }
-        // Write the fundamental collections to JSON
+        // Write the each important sheet to JSON.
+        // TODO: include filing dates?
         List<FundamentalCollection> fundamentalCollections = Lists.newArrayList();
-        for (Future<FundamentalCollection> future : futureFundamentalCollections) {
-            try {
-                fundamentalCollections.add(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            outputBalanceSheets(fundamentalCollections, new FileOutputStream(balanceSheetName));
+            outputIncomeStatements(fundamentalCollections, new FileOutputStream(incomeStatementName));
+            outputCashFlowsStatements(fundamentalCollections, new FileOutputStream(cashFlowsStatementName));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void outputBalanceSheets(List<FundamentalCollection> fundamentalCollections,
+            OutputStream outputStream) {
+        List<BalanceSheet> balanceSheets = Lists.newArrayList();
+        for (FundamentalCollection collection : fundamentalCollections) {
+            balanceSheets.add(collection.getBalanceSheet());
         }
         try {
-            mapper.writeValue(System.out, fundamentalCollections);
+            mapper.writeValue(outputStream, balanceSheets);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void outputIncomeStatements(List<FundamentalCollection> fundamentalCollections,
+            OutputStream outputStream) {
+        List<IncomeStatement> incomeStatements = Lists.newArrayList();
+        for (FundamentalCollection collection : fundamentalCollections) {
+            incomeStatements.add(collection.getIncomeStatement());
+        }
+        try {
+            mapper.writeValue(outputStream, incomeStatements);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void outputCashFlowsStatements(List<FundamentalCollection> fundamentalCollections,
+            OutputStream outputStream) {
+        List<CashFlowsStatement> cashFlowsStatements = Lists.newArrayList();
+        for (FundamentalCollection collection : fundamentalCollections) {
+            cashFlowsStatements.add(collection.getCashFlowsStatement());
+        }
+        try {
+            mapper.writeValue(outputStream, cashFlowsStatements);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

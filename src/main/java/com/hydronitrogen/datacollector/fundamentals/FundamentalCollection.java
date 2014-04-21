@@ -11,8 +11,7 @@ import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
 /**
  * A class which gathers all the important fundamentals form
- * an individual filing and puts them in a form to be output by
- * JSON.
+ * an individual filing.
  * @author hkothari
  */
 public final class FundamentalCollection {
