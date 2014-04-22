@@ -27,9 +27,9 @@ public final class XbrlUtils {
     }
 
     /**
-     * Gets the last Instant Context which is of the form [DI]\d{4}
-     * @param xbrl
-     * @return
+     * Gets the last Instant Context which is of the form [DI]\d{4}(Q[1-3])?(YTD)?
+     * @param xbrl the XBRL document to search contexts.
+     * @return the most recent instant context.
      */
     public static Context getLastInstantContextFromXbrl(XbrlParser xbrl) {
         Set<Context> contexts = xbrl.getContexts();
@@ -45,6 +45,11 @@ public final class XbrlUtils {
         return newestContext;
     }
 
+    /**
+     * Gets the last Duration Context which is of the form [DI]\d{4}(Q[1-3])?(YTD)?
+     * @param xbrl the XBRL document to search contexts.
+     * @return the most recent duration context.
+     */
     public static Context getLastDurationContextFromXbrl(XbrlParser xbrl) {
         Set<Context> contexts = xbrl.getContexts();
         Context newestContext = null;
