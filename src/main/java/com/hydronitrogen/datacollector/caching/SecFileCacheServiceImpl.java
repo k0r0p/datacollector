@@ -37,7 +37,7 @@ public final class SecFileCacheServiceImpl implements SecFileCacheService  {
     }
 
     @Override
-    public InputStream getFile(Path path, int fileType) {
+    public synchronized InputStream getFile(Path path, int fileType) {
         Path cacheFilePath = getCacheDir().resolve(path);
         if (!Files.exists(cacheFilePath)) {
             // Download the file to cache dir
