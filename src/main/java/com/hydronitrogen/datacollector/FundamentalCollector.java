@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -30,14 +29,14 @@ import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.importer.FilingFilter;
 import com.hydronitrogen.datacollector.importer.Filings;
 import com.hydronitrogen.datacollector.importer.SecImportServiceImpl;
-import com.hydronitrogen.datacollector.xbrl.XbrlParser;
+import com.hydronitrogen.datacollector.runners.FundamentalCollectorCallable;
 
 
 /**
  *
  * @author hkothari
  */
-public final class FundamentalCollector implements Callable<FundamentalCollection> {
+public final class FundamentalCollector {
 
     private static final Set<String> RELEVANT_FORMS = ImmutableSet.of("10-K", "10-Q");
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -45,10 +44,8 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
     private static final SecFileCacheService secFileCacheService = new SecFileCacheServiceImpl();
     private static final SecImportServiceImpl secImportService = new SecImportServiceImpl(secFileCacheService);
 
-    private final Filing filing;
-
-    public FundamentalCollector(Filing filing) {
-        this.filing = filing;
+    private FundamentalCollector() {
+        // Main class -- do not instantiate.
     }
 
     /**
@@ -57,18 +54,7 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
      * @param args
      */
     public static void main(String[] args) {
-        Options options = new Options();
-        options.addOption("b", true, "balance sheet file");
-        options.addOption("i", true, "income statement file");
-        options.addOption("c", true, "cash flows statement file");
-
-        CommandLineParser parser = new BasicParser();
-        CommandLine cmd;
-        try {
-            cmd = parser.parse( options, args);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        CommandLine cmd = getCommandLine(args);
         String balanceSheetName = cmd.getOptionValue("b");
         String incomeStatementName = cmd.getOptionValue("i");
         String cashFlowsStatementName = cmd.getOptionValue("c");
@@ -93,7 +79,8 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
         // Process them in parallel
         List<Future<FundamentalCollection>> futureFundamentalCollections = Lists.newArrayList();
         for (Filing filing : filings) {
-            Future<FundamentalCollection> fundamental = jobExecutor.submit(new FundamentalCollector(filing));
+            Future<FundamentalCollection> fundamental = jobExecutor.submit(new FundamentalCollectorCallable(
+                    secImportService, filing));
             futureFundamentalCollections.add(fundamental);
         }
         // Write the each important sheet to JSON.
@@ -104,6 +91,20 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
             outputIncomeStatements(fundamentalCollections, new FileOutputStream(incomeStatementName));
             outputCashFlowsStatements(fundamentalCollections, new FileOutputStream(cashFlowsStatementName));
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static CommandLine getCommandLine(String args[]) {
+        Options options = new Options();
+        options.addOption("b", true, "balance sheet file");
+        options.addOption("i", true, "income statement file");
+        options.addOption("c", true, "cash flows statement file");
+
+        CommandLineParser parser = new BasicParser();
+        try {
+            return parser.parse(options, args);
+        } catch (ParseException e) {
             throw new RuntimeException(e);
         }
     }
@@ -147,9 +148,4 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
         }
     }
 
-    @Override
-    public FundamentalCollection call() {
-        XbrlParser xbrl = secImportService.getXbrlForFiling(filing);
-        return FundamentalCollection.fromFilingAndXbrl(filing, xbrl);
-    }
 }
