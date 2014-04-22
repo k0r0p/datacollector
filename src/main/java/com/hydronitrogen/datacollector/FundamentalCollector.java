@@ -84,7 +84,6 @@ public final class FundamentalCollector {
             futureFundamentalCollections.add(fundamental);
         }
         // Write the each important sheet to JSON.
-        // TODO: include filing dates?
         List<FundamentalCollection> fundamentalCollections = Lists.newArrayList();
         try {
             outputBalanceSheets(fundamentalCollections, new FileOutputStream(balanceSheetName));

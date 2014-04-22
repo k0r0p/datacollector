@@ -2,10 +2,13 @@ package com.hydronitrogen.datacollector.fundamentals;
 
 import java.util.Set;
 
+import org.joda.time.DateTime;
+
 import com.google.common.base.Optional;
+import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.xbrl.Context;
-import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 import com.hydronitrogen.datacollector.xbrl.Context.Period;
+import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
 /**
  * @author hkothari
@@ -13,10 +16,12 @@ import com.hydronitrogen.datacollector.xbrl.Context.Period;
  */
 public abstract class XbrlBased {
 
+    private final Filing filing;
     private final XbrlParser source;
     private final Context context;
 
-    protected XbrlBased(XbrlParser source, Context context) {
+    protected XbrlBased(Filing filing, XbrlParser source, Context context) {
+        this.filing = filing;
         this.source = source;
         this.context = context;
     }
@@ -38,5 +43,9 @@ public abstract class XbrlBased {
 
     protected Optional<Double> getDoubleFactValue(String factName) {
         return source.getDoubleFactValue(factName, context);
+    }
+
+    public DateTime getFilingDate() {
+        return filing.getDate();
     }
 }

@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
+import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.xbrl.Context;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
@@ -22,8 +23,8 @@ public final class BalanceSheet extends XbrlBased {
             "us-gaap:StockholdersEquity", "us-gaap:PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest",
             "us-gaap:PartnersCapital", "us-gaap:CommonStockholdersEquity", "us-gaap:MemberEquity", "us-gaap:AssetsNet");
 
-    public BalanceSheet(XbrlParser source, Context context) {
-        super(source, context);
+    public BalanceSheet(Filing filing, XbrlParser source, Context context) {
+        super(filing, source, context);
         // Assert context is instant
         assert context.getPeriod().isInstant();
     }
@@ -37,13 +38,11 @@ public final class BalanceSheet extends XbrlBased {
     }
 
     public Optional<Double> getEquity() {
-        // TODO: apply fix
         return getOneOfFacts(EQUITY_FIELDS);
     }
 
     public DateTime getDate() {
         return getPeriod().getStartDate();
     }
-
 
 }

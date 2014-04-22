@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
+import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.xbrl.Context;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
@@ -24,8 +25,8 @@ public final class IncomeStatement extends XbrlBased {
     private static final String GROSS_PROFIT_FIELD = "us-gaap:GrossProfit";
     private static final String EARNINGS_PER_SHARE_BASIC_FIELD = "us-gaap:EarningsPerShareBasic";
 
-    public IncomeStatement(XbrlParser source, Context context) {
-        super(source, context);
+    public IncomeStatement(Filing filing, XbrlParser source, Context context) {
+        super(filing, source, context);
         assert !context.getPeriod().isInstant();
     }
 
