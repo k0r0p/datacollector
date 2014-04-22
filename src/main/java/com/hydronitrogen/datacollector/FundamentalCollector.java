@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -39,8 +40,12 @@ import com.hydronitrogen.datacollector.runners.FundamentalCollectorCallable;
 public final class FundamentalCollector {
 
     private static final Set<String> RELEVANT_FORMS = ImmutableSet.of("10-K", "10-Q");
+    private static final String BALANCE_SHEET_OPT = "b";
+    private static final String INCOME_STATEMENT_OPT = "i";
+    private static final String CASH_FLOWS_STATEMENT_OPT = "o";
+    private static final String START_YEAR_OPT = "y";
+
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final ExecutorService jobExecutor = Executors.newFixedThreadPool(10);
     private static final SecFileCacheService secFileCacheService = new SecFileCacheServiceImpl();
     private static final SecImportServiceImpl secImportService = new SecImportServiceImpl(secFileCacheService);
 
@@ -55,36 +60,21 @@ public final class FundamentalCollector {
      */
     public static void main(String[] args) {
         CommandLine cmd = getCommandLine(args);
-        String balanceSheetName = cmd.getOptionValue("b");
-        String incomeStatementName = cmd.getOptionValue("i");
-        String cashFlowsStatementName = cmd.getOptionValue("c");
+        String balanceSheetName = cmd.getOptionValue(BALANCE_SHEET_OPT);
+        String incomeStatementName = cmd.getOptionValue(INCOME_STATEMENT_OPT);
+        String cashFlowsStatementName = cmd.getOptionValue(CASH_FLOWS_STATEMENT_OPT);
+        int startYear = Integer.parseInt(cmd.getOptionValue(START_YEAR_OPT));
 
+        TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String,String>>() {};
         final Map<String, String> tickersToCik;
         try {
-            TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String,String>>() {};
             tickersToCik = mapper.readValue(System.in, typeRef);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        // Collect the list of filings
-        Set<Filing> filings = secImportService.getFilingsSince(2012);
-        filings = Filings.filterFilingList(filings, new FilingFilter() {
 
-            @Override
-            public boolean accept(Filing filing) {
-                return tickersToCik.keySet().contains(filing.getCik()) && RELEVANT_FORMS.contains(filing.getForm());
-            }
-
-        });
-        // Process them in parallel
-        List<Future<FundamentalCollection>> futureFundamentalCollections = Lists.newArrayList();
-        for (Filing filing : filings) {
-            Future<FundamentalCollection> fundamental = jobExecutor.submit(new FundamentalCollectorCallable(
-                    secImportService, filing));
-            futureFundamentalCollections.add(fundamental);
-        }
-        // Write the each important sheet to JSON.
-        List<FundamentalCollection> fundamentalCollections = Lists.newArrayList();
+        Set<Filing> filings = getFilings(tickersToCik, startYear);
+        List<FundamentalCollection> fundamentalCollections = getFundamentalCollections(filings);
         try {
             outputBalanceSheets(fundamentalCollections, new FileOutputStream(balanceSheetName));
             outputIncomeStatements(fundamentalCollections, new FileOutputStream(incomeStatementName));
@@ -96,9 +86,10 @@ public final class FundamentalCollector {
 
     private static CommandLine getCommandLine(String args[]) {
         Options options = new Options();
-        options.addOption("b", true, "balance sheet file");
-        options.addOption("i", true, "income statement file");
-        options.addOption("c", true, "cash flows statement file");
+        options.addOption(BALANCE_SHEET_OPT, true, "balance sheet file");
+        options.addOption(INCOME_STATEMENT_OPT, true, "income statement file");
+        options.addOption(CASH_FLOWS_STATEMENT_OPT, true, "cash flows statement file");
+        options.addOption(START_YEAR_OPT, true, "year to begin collecting filings from");
 
         CommandLineParser parser = new BasicParser();
         try {
@@ -106,6 +97,40 @@ public final class FundamentalCollector {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Set<Filing> getFilings(final Map<String, String> tickersToCik, int startYear) {
+        Set<Filing> filings = secImportService.getFilingsSince(startYear);
+        filings = Filings.filterFilingList(filings, new FilingFilter() {
+
+            @Override
+            public boolean accept(Filing filing) {
+                return tickersToCik.keySet().contains(filing.getCik()) && RELEVANT_FORMS.contains(filing.getForm());
+            }
+
+        });
+        return filings;
+    }
+
+    private static List<FundamentalCollection> getFundamentalCollections(Set<Filing> filings) {
+        ExecutorService jobExecutor = Executors.newFixedThreadPool(10);
+        // Process them in parallel
+        List<Future<FundamentalCollection>> futureFundamentalCollections = Lists.newArrayList();
+        for (Filing filing : filings) {
+            Future<FundamentalCollection> fundamental = jobExecutor.submit(new FundamentalCollectorCallable(
+                    secImportService, filing));
+            futureFundamentalCollections.add(fundamental);
+        }
+        // Wait for them to finish
+        List<FundamentalCollection> fundamentalCollections = Lists.newArrayList();
+        for (Future<FundamentalCollection> future : futureFundamentalCollections) {
+            try {
+                fundamentalCollections.add(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return fundamentalCollections;
     }
 
     private static void outputBalanceSheets(List<FundamentalCollection> fundamentalCollections,
