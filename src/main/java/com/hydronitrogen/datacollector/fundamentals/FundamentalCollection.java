@@ -5,7 +5,6 @@ import java.util.Set;
 import org.joda.time.DateTime;
 
 import com.hydronitrogen.datacollector.importer.Filing;
-import com.hydronitrogen.datacollector.importer.Filings;
 import com.hydronitrogen.datacollector.xbrl.Context;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
@@ -82,8 +81,7 @@ public final class FundamentalCollection {
      * @param filing the filing from which we are to gather the information.
      * @return
      */
-    public static FundamentalCollection fromFiling(Filing filing) {
-        XbrlParser xbrl = Filings.getXbrlForFiling(filing);
+    public static FundamentalCollection fromFilingAndXbrl(Filing filing, XbrlParser xbrl) {
         Context lastInstant = getLastInstantContextFromXbrl(xbrl);
         Context lastDuration = getLastDurationContextFromXbrl(xbrl);
         BalanceSheet balanceSheet = new BalanceSheet(xbrl, lastInstant);

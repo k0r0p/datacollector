@@ -6,8 +6,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
+import com.hydronitrogen.datacollector.caching.SecFileCacheService;
 import com.hydronitrogen.datacollector.xbrl.Context;
 import com.hydronitrogen.datacollector.xbrl.Context.Period;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
@@ -16,7 +18,7 @@ import com.hydronitrogen.datacollector.xbrl.XbrlParser;
  * @author hkothari
  *
  */
-public final class FilingsTest {
+public final class SecImportServiceTest {
 
     private static final String TEST_COMPANY = "1 800 FLOWERS COM INC";
     private static final String TEST_FORM = "10-K";
@@ -31,9 +33,17 @@ public final class FilingsTest {
     private static final Context TEST_CONTEXT = new Context(TEST_CONTEXT_ID, new Period(false, TEST_CONTEXT_START,
             TEST_CONTEXT_END));
 
+    private final SecFileCacheService secFileCacheService = new MockSecFileCacheService();
+    private SecImportServiceImpl secImportService;
+
+    @Before
+    public void setUp() {
+        secImportService = new SecImportServiceImpl(secFileCacheService);
+    }
+
     @Test
     public void testSimpleGetFilings() {
-        Set<Filing> filings = Filings.getFilingList(2012, 3);
+        Set<Filing> filings = secImportService.getFilingList(2012, 3);
         assertTrue(filings.contains(TEST_FILING));
     }
 
@@ -46,7 +56,7 @@ public final class FilingsTest {
                 return filing.getCik().equals(TEST_CIK);
             }
         };
-        Set<Filing> filings = Filings.getFilingList(2012, 3);
+        Set<Filing> filings = secImportService.getFilingList(2012, 3);
         Set<Filing> flowersFilings = Filings.filterFilingList(filings, flowerFilter);
         assertEquals(12, flowersFilings.size());
         assertTrue(flowersFilings.contains(TEST_FILING));
@@ -54,7 +64,7 @@ public final class FilingsTest {
 
     @Test
     public void testGetXbrl() {
-        XbrlParser parser = Filings.getXbrlForFiling(TEST_FILING);
+        XbrlParser parser = secImportService.getXbrlForFiling(TEST_FILING);
         assertEquals(0.27, parser.getDoubleFactValue("us-gaap:EarningsPerShareBasic", TEST_CONTEXT).get(), 0.000001);
     }
 }

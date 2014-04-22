@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.hydronitrogen.datacollector.caching.SecFileCacheService;
+import com.hydronitrogen.datacollector.caching.SecFileCacheServiceImpl;
 import com.hydronitrogen.datacollector.fundamentals.BalanceSheet;
 import com.hydronitrogen.datacollector.fundamentals.CashFlowsStatement;
 import com.hydronitrogen.datacollector.fundamentals.FundamentalCollection;
@@ -27,6 +29,8 @@ import com.hydronitrogen.datacollector.fundamentals.IncomeStatement;
 import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.importer.FilingFilter;
 import com.hydronitrogen.datacollector.importer.Filings;
+import com.hydronitrogen.datacollector.importer.SecImportServiceImpl;
+import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
 
 /**
@@ -38,6 +42,8 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
     private static final Set<String> RELEVANT_FORMS = ImmutableSet.of("10-K", "10-Q");
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final ExecutorService jobExecutor = Executors.newFixedThreadPool(10);
+    private static final SecFileCacheService secFileCacheService = new SecFileCacheServiceImpl();
+    private static final SecImportServiceImpl secImportService = new SecImportServiceImpl(secFileCacheService);
 
     private final Filing filing;
 
@@ -75,7 +81,7 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
             throw new RuntimeException(e);
         }
         // Collect the list of filings
-        Set<Filing> filings = Filings.getFilingsSince(2012);
+        Set<Filing> filings = secImportService.getFilingsSince(2012);
         filings = Filings.filterFilingList(filings, new FilingFilter() {
 
             @Override
@@ -143,6 +149,7 @@ public final class FundamentalCollector implements Callable<FundamentalCollectio
 
     @Override
     public FundamentalCollection call() {
-        return FundamentalCollection.fromFiling(filing);
+        XbrlParser xbrl = secImportService.getXbrlForFiling(filing);
+        return FundamentalCollection.fromFilingAndXbrl(filing, xbrl);
     }
 }
