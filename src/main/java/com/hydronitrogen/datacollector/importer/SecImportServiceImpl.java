@@ -2,10 +2,10 @@ package com.hydronitrogen.datacollector.importer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -22,12 +22,9 @@ import org.xml.sax.SAXException;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.google.common.io.LineReader;
 import com.hydronitrogen.datacollector.caching.SecFileCacheService;
-import com.hydronitrogen.datacollector.io.LineReaderIterable;
 import com.hydronitrogen.datacollector.utils.FormatUtils;
 import com.hydronitrogen.datacollector.utils.SecFtpUtils;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
@@ -135,12 +132,14 @@ public final class SecImportServiceImpl {
 
 
     private static Set<Filing> splitIndexFile(InputStream indexFileStream) {
-        InputStreamReader inputStreamReader = new InputStreamReader(indexFileStream);
-        LineReader lineReader = new LineReader(inputStreamReader);
+        Scanner lineReader = new Scanner(indexFileStream);
         // Skip the first 10 lines because they don't have useful entries
-        Iterable<String> actualEntries = Iterables.skip(new LineReaderIterable(lineReader), 10);
+        for (int i = 0; i < 10; i++) {
+            lineReader.nextLine();
+        }
         Set<Filing> filings = Sets.newHashSet();
-        for (String entry : actualEntries) {
+        while (lineReader.hasNextLine()) {
+            String entry = lineReader.nextLine();
             // HACKHACK: FIXME: SOME JANKY SHIT HAPPENS HERE
             if (!entry.trim().isEmpty()) {
                 String company = entry.substring(0, 62).trim();
@@ -151,6 +150,7 @@ public final class SecImportServiceImpl {
                 filings.add(new Filing(company, form, cik, date, filename));
             }
         }
+        lineReader.close();
         return filings;
     }
 }
