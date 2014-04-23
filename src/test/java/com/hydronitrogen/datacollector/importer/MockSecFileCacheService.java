@@ -28,8 +28,13 @@ public final class MockSecFileCacheService implements SecFileCacheService {
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            try {
+                return new FileInputStream("src/test/resources/flws-20120701.xml");
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
-        return null;
     }
 
     @Override
