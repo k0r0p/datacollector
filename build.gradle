@@ -9,11 +9,6 @@ targetCompatibility = 1.7
 
 mainClassName = 'com.hydronitrogen.datacollector.FundamentalCollector'
 
-test {
-    minHeapSize = "128m"
-    maxHeapSize = "512m"
-}
-
 repositories {
     mavenCentral()
 }
@@ -35,6 +30,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: project.jacksonVersion
 
     testCompile group: 'junit', name: 'junit', version: '4.+'
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.9.5'
 }
 
 checkstyle {
