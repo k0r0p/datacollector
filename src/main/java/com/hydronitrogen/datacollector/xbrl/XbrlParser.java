@@ -1,6 +1,7 @@
 package com.hydronitrogen.datacollector.xbrl;
 
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,7 +82,7 @@ public final class XbrlParser {
     }
 
     /**
-     * Gets the value of the given fact as a double if
+     * Gets the value of the given fact as a double if present and double.
      * @param factName the name of the fact to search for, eg. us-gaap:ShareholdersEquity
      * @param context the context of which to return the value for.
      * @return the Double value of the fact or Optional.absent()
@@ -94,5 +95,24 @@ public final class XbrlParser {
         } else {
             return Optional.absent();
         }
+    }
+
+    /**
+     * Gets the value of one of the provided facts (whichever is first)
+     * as a double if one is present and a double.
+     * @param factNames the collection of the names to search from.
+     * @param context the context of which to return the value for.
+     * @return the Double value of one of the facts or Optional.absent()
+     * @throws NumberFormatException if a value is found but not a double.
+     */
+    public Optional<Double> getOneOfDoubleFactValue(Collection<String> factNames, Context context) {
+        Optional<Double> factValue = Optional.absent();
+        for (String factName : factNames) {
+            factValue = getDoubleFactValue(factName, context);
+            if (factValue.isPresent()) {
+                return factValue;
+            }
+        }
+        return factValue;
     }
 }

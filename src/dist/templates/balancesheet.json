@@ -1,0 +1,10 @@
+{
+    "assets":"us-gaap:Assets",
+    "liabilities":"us-gaap:LiabilitiesAndPartnersCapital",
+    "equity": [
+        "us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",
+        "us-gaap:StockholdersEquity", "us-gaap:PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest",
+        "us-gaap:PartnersCapital", "us-gaap:CommonStockholdersEquity", "us-gaap:MemberEquity",
+        "us-gaap:AssetsNet"
+    ]
+}
