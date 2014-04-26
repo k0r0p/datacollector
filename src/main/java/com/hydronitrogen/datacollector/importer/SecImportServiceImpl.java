@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -14,8 +15,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 import org.joda.time.DateTime;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -24,9 +23,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.hydronitrogen.datacollector.caching.SecFileCacheService;
+import com.hydronitrogen.datacollector.caching.SecFtpService;
 import com.hydronitrogen.datacollector.utils.FormatUtils;
-import com.hydronitrogen.datacollector.utils.SecFtpUtils;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
 /**
@@ -38,10 +36,10 @@ public final class SecImportServiceImpl {
     private static final String FILING_LIST_PATH = "edgar/full-index/%d/QTR%d/company.zip";
     private static final String COMPANY_IDX_FILENAME = "company.idx";
 
-    private final SecFileCacheService secFileCacheService;
+    private final SecFtpService secFtpService;
 
-    public SecImportServiceImpl(SecFileCacheService secFileCacheService) {
-        this.secFileCacheService = secFileCacheService;
+    public SecImportServiceImpl(SecFtpService secFtpService) {
+        this.secFtpService = secFtpService;
     }
 
     /**
@@ -84,19 +82,19 @@ public final class SecImportServiceImpl {
         String filenameNoTxt = Files.getNameWithoutExtension(filename.getFileName().toString());
         String dirname = filenameNoTxt.replace("-", "");
         Path fullDir = filename.getParent().resolve(dirname);
-        FTPClient client = SecFtpUtils.getSecConnection();
-        FTPFile[] files = SecFtpUtils.listFilesInDirectory(client, fullDir);
+
         // Find the xsd file
+        List<String> files = secFtpService.getDirectory(fullDir);
         String xbrlName = null;
-        for (FTPFile file : files) {
-            if (file.getName().endsWith(".xsd")) {
-                xbrlName = Files.getNameWithoutExtension(file.getName()) + ".xml";
+        for (String file : files) {
+            if (file.endsWith(".xsd")) {
+                xbrlName = Files.getNameWithoutExtension(file) + ".xml";
             }
         }
 
         // Parse and return XBRL
         Preconditions.checkNotNull(xbrlName, "No XBRL xml file was found for this filing");
-        InputStream is = secFileCacheService.getFile(fullDir.resolve(xbrlName), FTP.ASCII_FILE_TYPE);
+        InputStream is = secFtpService.getFile(fullDir.resolve(xbrlName), FTP.ASCII_FILE_TYPE);
         try {
             Document xbrlDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
             return new XbrlParser(xbrlDocument);
@@ -106,7 +104,7 @@ public final class SecImportServiceImpl {
     }
 
     private InputStream getIndexFileContents(Path filingPath) {
-        InputStream is = secFileCacheService.getFile(filingPath);
+        InputStream is = secFtpService.getFile(filingPath);
         try {
             ZipInputStream zip = new ZipInputStream(is);
             ZipEntry next = zip.getNextEntry();

@@ -2,14 +2,14 @@ package com.hydronitrogen.datacollector.caching;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
- * Holds on to the files from the SEC so they don't have
- * to be downloaded multiple times, and also so they don't need
- * to remain in memory when being used.
+ * Reads files from the SEC's FTP site and provides
+ * them to the user at request.
  * @author hkothari
  */
-public interface SecFileCacheService {
+public interface SecFtpService {
 
     /**
      * Returns the file at the given path from the SEC's
@@ -31,8 +31,10 @@ public interface SecFileCacheService {
     InputStream getFile(Path path, int fileType);
 
     /**
-     * Gets the directory in which the cache resides.
+     * Reads the provided path as a a directory and returns a list of files corresponding to it.
+     * @param path the path we'd like to read as a directory.
+     * @return a list of String file/directory names in the path.
      */
-    Path getCacheDir();
+    List<String> getDirectory(Path path);
 
 }

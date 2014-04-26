@@ -16,7 +16,8 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.hydronitrogen.datacollector.caching.SecFileCacheService;
+import com.google.common.collect.Lists;
+import com.hydronitrogen.datacollector.caching.SecFtpService;
 import com.hydronitrogen.datacollector.xbrl.Context;
 import com.hydronitrogen.datacollector.xbrl.Context.Period;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
@@ -42,19 +43,24 @@ public final class SecImportServiceTest {
 
     private static final Path TEST_COMPANY_ZIP_PATH = Paths.get("edgar/full-index/2012/QTR3/company.zip");
     private static final String TEST_COMPANY_ZIP_FILE = "src/test/resources/company.idx.zip";
-    private static final Path TEST_XBRL_PATH = Paths.get("edgar/data/1084869/000104746912008848/flws-20120701.xml");
+    private static final String TEST_XBRL_FILENAME = "flws-20120701.xml";
+    private static final String TEST_XSD_FILENAME = "flws-20120701.xsd";
+    private static final Path TEST_XBRL_PATH = Paths.get("edgar/data/1084869/000104746912008848/").resolve(
+            TEST_XBRL_FILENAME);
     private static final String TEST_XBRL_FILE = "src/test/resources/flws-20120701.xml";
 
-    private SecFileCacheService secFileCacheService;
+    private SecFtpService secFtpService;
     private SecImportServiceImpl secImportService;
 
     @Before
     public void setUp() throws FileNotFoundException {
-        secFileCacheService = mock(SecFileCacheService.class);
-        when(secFileCacheService.getFile(TEST_COMPANY_ZIP_PATH)).thenReturn(new FileInputStream(TEST_COMPANY_ZIP_FILE));
-        when(secFileCacheService.getFile(TEST_XBRL_PATH, FTP.ASCII_FILE_TYPE)).thenReturn(
+        secFtpService = mock(SecFtpService.class);
+        when(secFtpService.getFile(TEST_COMPANY_ZIP_PATH)).thenReturn(new FileInputStream(TEST_COMPANY_ZIP_FILE));
+        when(secFtpService.getFile(TEST_XBRL_PATH, FTP.ASCII_FILE_TYPE)).thenReturn(
                 new FileInputStream(TEST_XBRL_FILE));
-        secImportService = new SecImportServiceImpl(secFileCacheService);
+        when(secFtpService.getDirectory(TEST_XBRL_PATH.getParent())).thenReturn(
+                Lists.newArrayList(TEST_XBRL_FILENAME, TEST_XSD_FILENAME));
+        secImportService = new SecImportServiceImpl(secFtpService);
     }
 
     @Test

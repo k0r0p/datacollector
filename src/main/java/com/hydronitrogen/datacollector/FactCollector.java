@@ -29,8 +29,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.hydronitrogen.datacollector.caching.SecFileCacheService;
-import com.hydronitrogen.datacollector.caching.SecFileCacheServiceImpl;
+import com.hydronitrogen.datacollector.caching.SecFtpService;
+import com.hydronitrogen.datacollector.caching.SecFtpCacheServiceImpl;
 import com.hydronitrogen.datacollector.importer.Filing;
 import com.hydronitrogen.datacollector.importer.FilingFilter;
 import com.hydronitrogen.datacollector.importer.Filings;
@@ -50,7 +50,7 @@ public final class FactCollector {
     private static final String START_YEAR_OPT = "y";
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final SecFileCacheService secFileCacheService = new SecFileCacheServiceImpl();
+    private static final SecFtpService secFileCacheService = new SecFtpCacheServiceImpl();
     private static final SecImportServiceImpl secImportService = new SecImportServiceImpl(secFileCacheService);
 
     private FactCollector() {
