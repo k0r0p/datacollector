@@ -7,19 +7,15 @@ import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Set;
 
 import org.apache.commons.net.ftp.FTP;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
+import com.hydronitrogen.datacollector.TestConstants;
 import com.hydronitrogen.datacollector.caching.SecFtpService;
-import com.hydronitrogen.datacollector.xbrl.Context;
-import com.hydronitrogen.datacollector.xbrl.Context.Period;
 import com.hydronitrogen.datacollector.xbrl.XbrlParser;
 
 /**
@@ -28,45 +24,25 @@ import com.hydronitrogen.datacollector.xbrl.XbrlParser;
  */
 public final class SecImportServiceTest {
 
-    private static final String TEST_COMPANY = "1 800 FLOWERS COM INC";
-    private static final String TEST_FORM = "10-K";
-    private static final String TEST_CIK = "1084869";
-    private static final DateTime TEST_DATE = new DateTime(2012, 9, 14, 0, 0);
-    private static final String TEST_FILENAME = "edgar/data/1084869/0001047469-12-008848.txt";
-    private static final Filing TEST_FILING = new Filing(TEST_COMPANY, TEST_FORM, TEST_CIK, TEST_DATE, TEST_FILENAME);
-
-    private static final String TEST_CONTEXT_ID = "D2012";
-    private static final DateTime TEST_CONTEXT_START = new DateTime(2011, 7, 4, 0, 0);
-    private static final DateTime TEST_CONTEXT_END = new DateTime(2012, 7, 1, 0, 0);
-    private static final Context TEST_CONTEXT = new Context(TEST_CONTEXT_ID, new Period(false, TEST_CONTEXT_START,
-            TEST_CONTEXT_END));
-
-    private static final Path TEST_COMPANY_ZIP_PATH = Paths.get("edgar/full-index/2012/QTR3/company.zip");
-    private static final String TEST_COMPANY_ZIP_FILE = "src/test/resources/company.idx.zip";
-    private static final String TEST_XBRL_FILENAME = "flws-20120701.xml";
-    private static final String TEST_XSD_FILENAME = "flws-20120701.xsd";
-    private static final Path TEST_XBRL_PATH = Paths.get("edgar/data/1084869/000104746912008848/").resolve(
-            TEST_XBRL_FILENAME);
-    private static final String TEST_XBRL_FILE = "src/test/resources/flws-20120701.xml";
-
     private SecFtpService secFtpService;
     private SecImportServiceImpl secImportService;
 
     @Before
     public void setUp() throws FileNotFoundException {
         secFtpService = mock(SecFtpService.class);
-        when(secFtpService.getFile(TEST_COMPANY_ZIP_PATH)).thenReturn(new FileInputStream(TEST_COMPANY_ZIP_FILE));
-        when(secFtpService.getFile(TEST_XBRL_PATH, FTP.ASCII_FILE_TYPE)).thenReturn(
-                new FileInputStream(TEST_XBRL_FILE));
-        when(secFtpService.getDirectory(TEST_XBRL_PATH.getParent())).thenReturn(
-                Lists.newArrayList(TEST_XBRL_FILENAME, TEST_XSD_FILENAME));
+        when(secFtpService.getFile(TestConstants.FTP_COMPANY_ZIP_PATH)).thenReturn(
+                new FileInputStream(TestConstants.LOCAL_COMPANY_ZIP_FILE));
+        when(secFtpService.getFile(TestConstants.FTP_XBRL_PATH, FTP.ASCII_FILE_TYPE)).thenReturn(
+                new FileInputStream(TestConstants.LOCAL_XBRL_FILE));
+        when(secFtpService.getDirectory(TestConstants.FTP_XBRL_PATH.getParent())).thenReturn(
+                Lists.newArrayList(TestConstants.FTP_XBRL_FILENAME, TestConstants.FTP_XSD_FILENAME));
         secImportService = new SecImportServiceImpl(secFtpService);
     }
 
     @Test
     public void testSimpleGetFilings() {
         Set<Filing> filings = secImportService.getFilingList(2012, 3);
-        assertTrue(filings.contains(TEST_FILING));
+        assertTrue(filings.contains(TestConstants.TEST_FILING));
     }
 
     @Test
@@ -75,18 +51,19 @@ public final class SecImportServiceTest {
 
             @Override
             public boolean accept(Filing filing) {
-                return filing.getCik().equals(TEST_CIK);
+                return filing.getCik().equals(TestConstants.FILING_CIK);
             }
         };
         Set<Filing> filings = secImportService.getFilingList(2012, 3);
         Set<Filing> flowersFilings = Filings.filterFilingList(filings, flowerFilter);
         assertEquals(12, flowersFilings.size());
-        assertTrue(flowersFilings.contains(TEST_FILING));
+        assertTrue(flowersFilings.contains(TestConstants.TEST_FILING));
     }
 
     @Test
     public void testGetXbrl() {
-        XbrlParser parser = secImportService.getXbrlForFiling(TEST_FILING);
-        assertEquals(0.27, parser.getDoubleFactValue("us-gaap:EarningsPerShareBasic", TEST_CONTEXT).get(), 0.000001);
+        XbrlParser parser = secImportService.getXbrlForFiling(TestConstants.TEST_FILING);
+        assertEquals(0.27, parser.getDoubleFactValue("us-gaap:EarningsPerShareBasic",
+                TestConstants.DURATION_CONTEXT).get(), 0.000001);
     }
 }
